@@ -1,1 +1,0 @@
-cc -o .game **.c **.cpp  -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 && ./.game

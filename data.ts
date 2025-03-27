@@ -15,3 +15,15 @@ export const colors = {
 
 };
 
+
+export const transactionTypeOptions = ["income", "expense"]
+
+export const daysOfWeek = [
+	{ value: "Sun", label: "Sunday" },
+	{ value: "Mon", label: "Monday" },
+	{ value: "Tue", label: "Tuesday" },
+	{ value: "Wed", label: "Wednesday" },
+	{ value: "Thu", label: "Thursday" },
+	{ value: "Fri", label: "Friday" },
+	{ value: "Sat", label: "Saturday" }
+];

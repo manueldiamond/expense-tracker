@@ -1,13 +1,13 @@
-import { currentVersion } from '@/data';
-import SQLite, { SQLiteDatabase } from 'expo-sqlite'
-
-let db: SQLiteDatabase;
+import { SQLiteDatabase } from 'expo-sqlite'
 
 //setup scripts
+
+
 const dbSetupScript = `
 		PRAGMA journal_mode=WAL;
 		PRAGMA foreign_keys=ON;
 
+		
 		CREATE TABLE IF NOT EXISTS categories(
 			name TEXT PRIMARY KEY NOT NULL,
 			color TEXT NOT NULL,
@@ -15,20 +15,29 @@ const dbSetupScript = `
 		);
 
 		CREATE TABLE IF NOT EXISTS transactions(
-			id INTEGER PRIMARY KEY NOT NULL,
+			id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 			amount INTEGER NOT NULL, 
 			category TEXT, 
 			time DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-			FOREIGN KEY(category) REFERENCES categories(name) ON DELETE SET NULL
-		); 
+			FOREIGN KEY(category) REFERENCES categories(name) ON DELETE NO ACTION
+		);
+
+		CREATE TABLE IF NOT EXISTS user_data(
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT, 
+			email TEXT
+		);
+		
 `;
 
 const insertDefaultCategoriesScript = `
+	DELETE FROM categories;
+
 	INSERT INTO categories (name, type, color) 
 	VALUES
 		('Food', 'expense', '#faecd4'),
-		('Delivery', 'expense', '#fce8e6'),
+		('Delivery', 'income', '#acf8a6'),
 		('Salary', 'income', '#e9f3e6'),
 		('Gas', 'income', '#ffefd6'),
 		('Water', 'income', '#d4e4fa'),
@@ -37,35 +46,25 @@ const insertDefaultCategoriesScript = `
 		('Misc', '', '#dde');
 `;
 
+export const setupDB = async (db: SQLiteDatabase) => {
+	//await db.execAsync(`PRAGMA user_version = 0`);
+	const DATABASE_VERSION = 1;
 
-export const getDB = async () => {
-	if (!db) {
-		console.log("NO DB")
-		db = await SQLite.openDatabaseAsync('local.db');
-		//Initially create tables if they don't exist
+	const ver = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+
+	let currentDbVersion = ver?.user_version || 0
+
+	if (currentDbVersion > DATABASE_VERSION)
+		return;
+
+	if (currentDbVersion === 0) {
 		await db.execAsync(dbSetupScript);
-		/*
-		const userVersion = await db.getFirstAsync(
-			'PRAGMA user_version'
-		);
-
-
-		console.log(userVersion);
-
-		if (userVersion < 1) {
-			await db.runAsync(insertDefaultCategoriesScript);
-			await db.runAsync(`PRAGMA user_version=1`)
-		}
-*/
+		await db.runAsync(`INSERT INTO user_data(id, name) VALUES (0, 'User');`);
+		await db.execAsync(insertDefaultCategoriesScript);
 	}
-	console.log("DB = ", db)
-	return db;
+
+
+	await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
 }
 
 
-export const getCategories = async () => {
-	const db = await getDB();
-	console.log(db);
-	const data = await db?.getAllAsync(`SELECT * FROM categories`);
-	return data;
-}
