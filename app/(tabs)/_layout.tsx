@@ -57,12 +57,12 @@ export default function Layout() {
       {/* Customize how `< TabSlot /> ` is rendered. */}
 
       <TabSlot className="bg-white" />
-
-
       <TabList className="w-full absolute bottom-0 bg-white shadow-[0px_-50px_20px] shadow-head justify-between flex flex-row px-5">
         <AddTransation />
         {pages.map(({ link, icon, activeIcon, label, name }) => {
+
           const active = isCurrentPath(link)
+
           return (
             <TabTrigger
               //@ts-ignore

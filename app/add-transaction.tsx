@@ -6,7 +6,7 @@ import Select from "@/components/ui/select";
 import { useSQLiteContext } from "expo-sqlite";
 import { ExternalState, Option, Transaction, TransactionCategory } from "@/types";
 import { toOptions } from "@/utils";
-import { colors, transactionTypeOptions } from "@/data";
+import { colors, transactionPaymentTypeOptions, transactionTypeOptions } from "@/data";
 import { useEffect, useMemo } from "react";
 import RadioOptions from "@/components/radio-options";
 import BackButton from "@/components/back-button";
@@ -19,10 +19,16 @@ export default function AddTrans() {
   const closeModal = () => router.back()
   const { show: showToast } = useToast()
 
-  const [data, setData] = useObjectState({ amount: "", category: "Misc", type: "income" });
+  const [data, setData] = useObjectState({
+    amount: "",
+    type: "income",
+    category: "Misc",
+    paymentType: "momo"
+  });
 
   const categoryState: ExternalState<string> = [data.category, (category: string) => setData({ category })]
   const typeState: ExternalState<string> = [data.type, (type: string) => setData({ type })]
+  const paymentTypeState: ExternalState<string> = [data.paymentType, (paymentType: string) => setData({ paymentType })]
 
   const db = useSQLiteContext()
   const [cats] = useCategories(db)
@@ -37,12 +43,6 @@ export default function AddTrans() {
       </View >)
   ), [cats?.length])
 
-  const typeOptions = useMemo(() => toOptions(
-    transactionTypeOptions,
-    type => type,
-    type => type[0].toUpperCase() + type.slice(1)
-  ), [])
-
   const revalidate = useRevalidator()
   useEffect(() => {
     setData({
@@ -54,28 +54,34 @@ export default function AddTrans() {
   const addTransaction = async () => {
     let msg;
     const amount = parseFloat(data.amount);
-    if (!amount || amount < 0)
-      msg = "Please enter a valid Amount"
-    else if (!data.type)
-      msg = "Please specify a Transaction Type"
+    try {
+      if (!amount || amount < 0)
+        msg = "Please enter a valid Amount"
+      else if (!data.type)
+        msg = "Please specify a Transaction Type"
 
-    if (msg) {
-      Alert.alert(msg)
-      return;
-    }
-
-    const trans = {
-      $category: data.category,
-      $amount: amount * (data.type === 'expense' ? -1 : 1)
-    }
-    await db.runAsync(`
-      INSERT INTO transactions(amount,category) VALUES($amount,$category)
+      const trans = {
+        $category: data.category,
+        $amount: amount * (data.type === 'expense' ? -1 : 1),
+        $ptype: data.paymentType,
+      }
+      await db.runAsync(`
+      INSERT INTO transactions(amount,category,payment_type) VALUES($amount,$category,$ptype)
     `, trans);
 
-    revalidate("transactions")
+      revalidate("transactions")
 
-    showToast("Successfully added new " + "₵" + data.amount + " " + data.type,);
-    closeModal()
+      showToast(`Successfully added new ₵${data.amount} ${data.paymentType} ${data.type}`);
+      closeModal()
+    } catch (e) {
+      console.log(e)
+      if (msg) {
+        Alert.alert(msg)
+        return;
+      }
+
+
+    }
   }
 
   return (
@@ -113,11 +119,21 @@ export default function AddTrans() {
 
           <Text className="text-xl text-head py-4">Transaction Type</Text>
           <RadioOptions
-            items={typeOptions}
+            items={transactionTypeOptions}
             state={typeState}
             className="w-full flex-row "
             itemClassName="flex-1"
           />
+
+
+          <Text className="text-xl text-head py-4">Payment Method</Text>
+          <RadioOptions
+            items={transactionPaymentTypeOptions}
+            state={paymentTypeState}
+            className="w-full flex-row "
+            itemClassName="flex-1"
+          />
+
 
         </View>
 

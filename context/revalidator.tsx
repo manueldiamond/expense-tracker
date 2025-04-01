@@ -51,5 +51,5 @@ export const useRevalidator = () => {
 const defaultDate = new Date(1995)
 export const useValidator = (tag: string) => {
 	const context = useRevalidatorContext()
-	return context.state[tag] || (defaultDate)
+	return `${context.state[tag] || (defaultDate)}`
 }

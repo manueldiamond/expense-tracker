@@ -1,6 +1,7 @@
 //DB TYPES
 
 import { ReactNode } from "react";
+import { transactionPaymentTypeOptions, transactionTypeOptions } from "./data";
 
 export interface UserData {
 	name: string;
@@ -10,7 +11,7 @@ export interface UserData {
 export interface TransactionCategory {
 	name: string;
 	color: string;
-	type: 'income' | 'expense';
+	type: (typeof transactionTypeOptions)[number]['value'];
 }
 
 export interface Transaction {
@@ -18,6 +19,7 @@ export interface Transaction {
 	amount: number;
 	category: string | TransactionCategory;
 	time: string;
+	paymentType: (typeof transactionPaymentTypeOptions)[number]['value'] | null;
 }
 
 //END DB TYPES
@@ -29,3 +31,9 @@ export type Option<T> = {
 	label: ReactNode,
 	value: T
 }
+
+
+export const periods = ["All", "Today", "Weekly", "Monthly", "Yearly"] as const
+export type periodType = typeof periods[number]
+
+

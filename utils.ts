@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { Option } from "./types";
+import { format, isToday, isYesterday, isThisWeek, isThisYear, subWeeks, getDay } from "date-fns";
+import { Option, periodType } from "./types";
 
 export const toOptions = <T>(
 	arr: T[],
@@ -10,6 +11,8 @@ export const toOptions = <T>(
 	label: labelFormatter(item)
 } as Option<number | string>)
 )
+
+export const rarr = <T>(arr: T[]) => arr[Math.round(Math.random() * arr.length)] as T
 
 
 export const getStartOfWeek = (weekStarts = 0) => {
@@ -31,3 +34,25 @@ export const getStartOfYear = () => {
 	const date = new Date()
 	return new Date(date.getFullYear(), 0, 1);
 }
+
+
+export const formaFancyDate = (date: Date) => {
+	if (isToday(date)) return date.toLocaleTimeString('en-US', { hour12: true, timeStyle: 'short' });
+	else if (isYesterday(date)) return "Yesterday";
+	else if (isThisWeek(date)) return getDay(date);
+	else if (date >= subWeeks(new Date(), 1)) return "Last week";
+	else if (isThisYear(date)) return format(date, "MMMM d"); // e.g., "March 22"
+	return format(date, "MMMM d, yyyy"); // e.g., "March 22, 2022"
+};
+
+export const getDateFromPeriod = (period: periodType) => period === 'Today' ? new Date()
+	: period === 'Weekly' ?
+		getStartOfWeek()
+		: period === 'Monthly' ?
+			getStartOfMonth()
+			: period === 'Yearly' ?
+				getStartOfYear()
+				: new Date(1995, 0, 1)
+
+
+

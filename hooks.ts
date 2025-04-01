@@ -32,9 +32,13 @@ export const useSqliteGet = <T>(db: SQLiteDatabase, sql: string, params = undefi
 
 	useEffect(() => {
 		const getAllQuery = async () => {
-			const data = await db.getAllAsync<T>(sql, params)
-			setState(data)
-			console.log(tag, "validated")
+			try {
+				const data = await db.getAllAsync<T>(sql, params)
+				setState(data)
+				console.log(tag, "validated")
+			} catch (e) {
+				console.log(e);
+			}
 		}
 
 		/*  DEBUGGING REPEATING QUERIES
@@ -68,6 +72,7 @@ export const useTransactions = (db: SQLiteDatabase, startDate: Date, limit = 999
 		`SELECT 
 		  t.id,
 		t.amount,
+		t.payment_type,
 		t.category,
 		t.time,
 		c.name AS category_name,
@@ -97,6 +102,7 @@ export const useTransactions = (db: SQLiteDatabase, startDate: Date, limit = 999
 				id: t.id,
 				amount: t.amount,
 				time: t.time,
+				paymentType: t.payment_type,
 				category: t.category_name ? {
 					name: t.category_name,
 					color: t.category_color,

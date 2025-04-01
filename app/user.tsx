@@ -70,11 +70,6 @@ const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => v
   })
   const { color, type, name } = data
 
-  const typeOptions = useMemo(() => toOptions(
-    transactionTypeOptions,
-    type => type,
-    type => type[0].toUpperCase() + type.slice(1)
-  ), [])
 
   const addPressed = () => {
     if (!name)
@@ -117,7 +112,7 @@ const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => v
         </View>
         <View className="flex-row justify-between items-center w-full">
           <RadioOptions
-            items={typeOptions}
+            items={transactionTypeOptions}
             state={[type, (type) => setData({ type })]}
             itemClassName="!px-2 !py-1"
             className="gap-1"
@@ -215,7 +210,6 @@ export default function page() {
                   <CategoriesListItem
                     deleteCategory={() => deleteCategoryFromState(cat.name)}
                     key={cat.name}{...cat} />)}
-                <Text className="italic text-muted-2 text-center w-full">Herr, Eli, see, it's not perfect, but it works</Text>
               </Card>
 
               <AddCategoriesListItem onAdd={addCategoryToState} />

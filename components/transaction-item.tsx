@@ -2,24 +2,18 @@ import { colors } from "@/data";
 import { Transaction } from "@/types";
 import { useMemo, useState } from "react";
 import { Alert, Text, TouchableOpacity, View } from "react-native";
-import { format, isToday, isYesterday, isThisWeek, isThisYear, subWeeks, getDay } from "date-fns";
-import { MaterialCommunityIcons } from '@expo/vector-icons/'
+
+import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons/'
 import { useSQLiteContext } from "expo-sqlite";
 import { useRevalidator } from "@/context/revalidator";
 import Controls from "./controls";
-const formatDate = (date: Date) => {
-  if (isToday(date)) return date.toLocaleTimeString('en-US', { hour12: true, timeStyle: 'short' });
-  else if (isYesterday(date)) return "Yesterday";
-  else if (isThisWeek(date)) return getDay(date);
-  else if (date >= subWeeks(new Date(), 1)) return "Last week";
-  else if (isThisYear(date)) return format(date, "MMMM d"); // e.g., "March 22"
-  return format(date, "MMMM d, yyyy"); // e.g., "March 22, 2022"
-};
+import { formaFancyDate } from "@/utils";
 
-const TransactionItem = ({ category, amount, time, id, controlsEnabled }: Transaction & { controlsEnabled?: boolean }) => {
+
+const TransactionItem = ({ paymentType, category, amount, time, id, controlsEnabled }: Transaction & { controlsEnabled?: boolean }) => {
   const icon = "";
   const categoryColor = (category && typeof category === 'object') ? category.color : colors["muted-2"];
-  const timeString = useMemo(() => formatDate(new Date(time)), [time])
+  const timeString = useMemo(() => formaFancyDate(new Date(time)), [time])
 
   const isExpense = Math.sign(amount) < 0
 
@@ -44,12 +38,26 @@ const TransactionItem = ({ category, amount, time, id, controlsEnabled }: Transa
           <Text className="text-head text-xl">{isExpense ? '-' : ''} ₵{Math.abs(amount)}</Text>
         </View>
         <View className="flex-row justify-between flex-1">
-          <Text className="text-lg text-muted" numberOfLines={1}>{type}</Text>
+          <View className="flex-row gap-0.5 items-center justify-center">
+            <Text
+              className="text-lg text-muted"
+              numberOfLines={1}
+            >{type}</Text>
+            {paymentType && <>
+              <FontAwesome
+                size={5}
+                name="circle"
+                className="mt-[4px]"
+                color={colors["muted-2"]}
+              />
+              <Text className="text-muted uppercase text-base">{paymentType}</Text>
+            </>}
+          </View>
           <Text className="text-muted text-lg">{timeString}</Text>
         </View>
       </View>
       {controlsEnabled && <Controls onDelete={deleteTransaction} />}
-    </View>
+    </View >
   )
 }
 
