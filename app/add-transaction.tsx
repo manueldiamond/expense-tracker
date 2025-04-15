@@ -13,6 +13,8 @@ import BackButton from "@/components/back-button";
 import { useToast } from 'expo-toast'
 import { LinearGradient } from "expo-linear-gradient";
 import { useRevalidator } from "@/context/revalidator";
+import DateSelect from "@/components/date-selector";
+import { MainButton as AccentButton, } from "@/components/ui/button";
 
 export default function AddTrans() {
   const router = useRouter()
@@ -21,6 +23,7 @@ export default function AddTrans() {
 
   const [data, setData] = useObjectState({
     amount: "",
+    date: new Date(),
     type: "income",
     category: "Misc",
     paymentType: "momo"
@@ -29,6 +32,7 @@ export default function AddTrans() {
   const categoryState: ExternalState<string> = [data.category, (category: string) => setData({ category })]
   const typeState: ExternalState<string> = [data.type, (type: string) => setData({ type })]
   const paymentTypeState: ExternalState<string> = [data.paymentType, (paymentType: string) => setData({ paymentType })]
+  const dateState: ExternalState<Date> = [data.date, (date: Date) => setData({ date })]
 
   const db = useSQLiteContext()
   const [cats] = useCategories(db)
@@ -60,14 +64,16 @@ export default function AddTrans() {
       else if (!data.type)
         msg = "Please specify a Transaction Type"
 
+      const date = data.date
+
       const trans = {
         $category: data.category,
         $amount: amount * (data.type === 'expense' ? -1 : 1),
         $ptype: data.paymentType,
+        $date: date.toISOString(),
       }
       await db.runAsync(`
-      INSERT INTO transactions(amount,category,payment_type) VALUES($amount,$category,$ptype)
-    `, trans);
+      INSERT INTO transactions(amount,category,payment_type,time) VALUES($amount,$category,$ptype,$date) `, trans);
 
       revalidate("transactions")
 
@@ -79,75 +85,69 @@ export default function AddTrans() {
         Alert.alert(msg)
         return;
       }
-
-
+    } finally {
+      revalidate("transactions")
     }
   }
 
   return (
 
     <KeyboardAvoidingView className="bg-accent">
-      <View className="justify-between bg-white rounded-t-3xl h-full container py-8">
-        <View>
-          {/*ADD TRANSACTION HEADER*/}
-          <View className="pb-6 flex-row flex items-center w-full justify-center">
-            <BackButton className="absolute left-0 " />
-            <Text className="text-xl text-head w-max p-0">Add Transaction</Text>
+      <ScrollView >
+        <View className="justify-between bg-white rounded-t-3xl min-h-screen container py-8">
+          <View>
+            {/*ADD TRANSACTION HEADER*/}
+            <View className=" flex-row flex items-center w-full justify-center">
+              <BackButton className="absolute left-0 " />
+              <Text className="text-xl text-head w-max p-0">Add Transaction</Text>
+            </View>
+            <View className="gap-2 mt-6">
+              <DateSelect state={dateState} />
+              <Card label="Amount" className="py-3.5">
+                <View className="flex-row items-center justify-center">
+                  <Text className="text-head text-xl ml-4">₵</Text>
+                  <TextInput
+                    value={data.amount}
+                    onChangeText={amtText => setData({ amount: amtText.replace(/[^0-9.]/g, "") })}
+                    keyboardType="numeric"
+                    className="py-0 my-0 w-full text-head text-xl"
+                    placeholder="0.00"
+                  />
+                </View>
+              </Card>
+              <Card label="Category" className="py-3.5 gap-4 flex flex-col">
+                {categoryOptions &&
+                  <Select
+                    items={categoryOptions}
+                    state={categoryState}
+                  />}
+              </Card>
+              <Text className="text-head"></Text>
+            </View>
+
+
+            <Text className="text-base text-head py-1">Transaction Type</Text>
+            <RadioOptions
+              items={transactionTypeOptions}
+              state={typeState}
+              className="w-full flex-row "
+              itemClassName="flex-1"
+            />
+
+
+            <Text className="text-base text-head py-1">Payment Method</Text>
+            <RadioOptions
+              items={transactionPaymentTypeOptions}
+              className="w-full flex-row "
+              state={paymentTypeState}
+              itemClassName="flex-1"
+            />
+
           </View>
-          <View className="gap-2">
-            <Card label="Amount" className="py-3.5">
-              <View className="flex-row items-center justify-center">
-                <Text className="text-head text-xl ml-4">₵</Text>
-                <TextInput
-                  value={data.amount}
-                  onChangeText={amtText => setData({ amount: amtText.replace(/[^0-9.]/g, "") })}
-                  keyboardType="numeric"
-                  className="py-0 my-0 w-full text-head text-xl"
-                  placeholder="0.00"
-                />
-              </View>
-            </Card>
-            <Card label="Category" className="py-3.5 gap-4 flex flex-col">
-              {categoryOptions && <Select
-                items={categoryOptions}
-                state={categoryState}
-              />}
-            </Card>
-            <Text className="text-head"></Text>
-          </View>
-
-
-          <Text className="text-xl text-head py-4">Transaction Type</Text>
-          <RadioOptions
-            items={transactionTypeOptions}
-            state={typeState}
-            className="w-full flex-row "
-            itemClassName="flex-1"
-          />
-
-
-          <Text className="text-xl text-head py-4">Payment Method</Text>
-          <RadioOptions
-            items={transactionPaymentTypeOptions}
-            state={paymentTypeState}
-            className="w-full flex-row "
-            itemClassName="flex-1"
-          />
-
-
+          <AccentButton text='Add' onPress={addTransaction} className="mt-2" />
         </View>
+      </ScrollView>
 
-        <TouchableOpacity className='overflow-hidden bg-accent relative items-center justify-center rounded-[28px] px-6 py-6' onPress={addTransaction}>
-          {/*
-          <LinearGradient
-            colors={[colors.accent, colors["accent-dark"]]}
-            start={[0.5, 0.2]} end={[1.0, 1.0]}
-            className=" absolute left-0 top-0 flex-1"
-          />
-          */}
-          <Text className="text-xl text-white font-medium ">Add</Text>
-        </TouchableOpacity>
-      </View>
     </KeyboardAvoidingView >
 
   )

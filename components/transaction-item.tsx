@@ -10,7 +10,7 @@ import Controls from "./controls";
 import { formaFancyDate } from "@/utils";
 
 
-const TransactionItem = ({ paymentType, category, amount, time, id, controlsEnabled }: Transaction & { controlsEnabled?: boolean }) => {
+const TransactionItem = ({ paymentType, category, amount, time, id, controlsEnabled, onCategoryPressed }: Transaction & { controlsEnabled?: boolean, onCategoryPressed?: (cat: string) => void }) => {
   const icon = "";
   const categoryColor = (category && typeof category === 'object') ? category.color : colors["muted-2"];
   const timeString = useMemo(() => formaFancyDate(new Date(time)), [time])
@@ -26,7 +26,7 @@ const TransactionItem = ({ paymentType, category, amount, time, id, controlsEnab
   }
 
   const type = !isExpense ? 'income' : 'expense'
-
+  const categoryName = typeof category === 'string' ? category : category ? category.name : type
   return (
     <View className="flex-row gap-4 flex-1 items-center justify-center ">
       <View className="size-12 rounded-xl" style={{ backgroundColor: categoryColor }}>
@@ -34,7 +34,9 @@ const TransactionItem = ({ paymentType, category, amount, time, id, controlsEnab
       </View>
       <View className="flex-1">
         <View className="flex-row justify-between flex-1">
-          <Text className="text-head text-xl">{typeof category === 'string' ? category : category ? category.name : type}</Text>
+          <TouchableOpacity onPress={() => onCategoryPressed && onCategoryPressed(categoryName)}>
+            <Text className="text-head text-xl">{categoryName}</Text>
+          </TouchableOpacity>
           <Text className="text-head text-xl">{isExpense ? '-' : ''} ₵{Math.abs(amount)}</Text>
         </View>
         <View className="flex-row justify-between flex-1">

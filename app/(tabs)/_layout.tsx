@@ -17,11 +17,11 @@ const pages = [
     name: 'index',
   },
   {
-    link: "/records",
-    icon: "list",
-    activeIcon: "list-alt",
-    label: "Records",
-    name: 'records'
+    link: "/user",
+    icon: 'settings',
+    activeIcon: 'settings',
+    label: "Settings",
+    name: 'user'
   },
 ];
 

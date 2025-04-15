@@ -17,14 +17,15 @@ export default function RootLayout() {
           <ToastProvider>
             <SQLiteProvider databaseName="local.db" onInit={setupDB}>
               <Stack>
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="index" options={{ headerShown: false }} />
                 <Stack.Screen name="add-transaction" options={{
                   presentation: 'modal',
                   headerShown: false,
                   statusBarBackgroundColor: colors.accent
 
                 }} />
-                <Stack.Screen name="user" options={{ title: "User Settings" }} />
+                <Stack.Screen name="records" options={{ title: "Records" }} />
+                <Stack.Screen name="user" options={{ title: "User Profile" }} />
               </Stack>
             </SQLiteProvider>
           </ToastProvider>

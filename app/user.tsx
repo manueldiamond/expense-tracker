@@ -3,7 +3,7 @@ import Controls from "@/components/controls";
 import { useRevalidator } from "@/context/revalidator";
 import { useUserProfile } from "@/context/user";
 import { colors, transactionTypeOptions } from "@/data";
-import { useCategories, useObjectState, useUserData } from "@/hooks";
+import { useCategories, useHandleBack, useObjectState, useUserData } from "@/hooks";
 import { ExternalState, TransactionCategory } from "@/types";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useSQLiteContext } from "expo-sqlite";
@@ -13,7 +13,8 @@ import { TabActionType } from "@react-navigation/native";
 import RadioOptions from "@/components/radio-options";
 import { useMemo, useState } from "react";
 import { toOptions } from "@/utils";
-import { router } from "expo-router";
+import { router, useRouter } from "expo-router";
+import BackButton from "@/components/back-button";
 
 
 const COLORS = [
@@ -24,7 +25,6 @@ const COLORS = [
   colors.head, colors.lblue, colors.spent,
   colors.muted,
 ];
-
 
 export const ColorPicker = ({ state }: { state: ExternalState<string> }) => {
   const [selectedColor, setSelectedColor] = state
@@ -43,10 +43,11 @@ export const ColorPicker = ({ state }: { state: ExternalState<string> }) => {
   );
 };
 
-
+const coreCategories = ['Food', 'Misc']
 const CategoriesListItem = ({ name, type, color, deleteCategory }: TransactionCategory & { deleteCategory: () => void }) => {
 
   return (
+
     <View className="flex-row gap-4 items-center justify-between flex-1">
       <View className="flex-row gap-4 items-center justify-center">
         <View className="size-9 rounded-xl" style={{ backgroundColor: color }}>
@@ -59,7 +60,7 @@ const CategoriesListItem = ({ name, type, color, deleteCategory }: TransactionCa
           </View>
         </View>
       </View>
-      <Controls onDelete={deleteCategory} noConfirmDelete />
+      <Controls onDelete={coreCategories.includes(name) ? undefined : deleteCategory} noConfirmDelete />
     </View>
   )
 }
@@ -112,8 +113,7 @@ const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => v
         </View>
         <View className="flex-row justify-between items-center w-full">
           <RadioOptions
-            items={transactionTypeOptions}
-            state={[type, (type) => setData({ type })]}
+            items={transactionTypeOptions} state={[type, (type) => setData({ type })]}
             itemClassName="!px-2 !py-1"
             className="gap-1"
             itemTextClassName="!text-sm"
@@ -132,55 +132,46 @@ const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => v
     </Card>
   )
 }
+
 export default function page() {
   const db = useSQLiteContext()
   const { user, setUserData, mutateUserData } = useUserData(db)
   const [categories, mutateCategories] = useCategories(db)
+  const router = useRouter()
+  const revalidate = useRevalidator()
+  const toast = useToast()
 
   const deleteCategoryFromState = (name: string) => {
-    //@ts-ignore
-    mutateCategories(prevCats => prevCats.filter(cat => cat.name !== name))
+    db.runAsync(`DELETE FROM categories WHERE name=$name`, { $name: name })
+      .then(_ => {
+        toast.show(name + ' successfully deleted')
+      }).catch((e) => {
+        console.log(e)
+        toast.show("Error: couldn't delete category")
+      }).finally(() => {
+        revalidate('cats');
+      })
   }
 
   const addCategoryToState = (cat: TransactionCategory) => {
-    //@ts-ignore
-    mutateCategories(prevCats => [...prevCats, cat])
-  }
-
-  const revalidate = useRevalidator()
-
-  const toast = useToast()
-  const save = async () => {
-    let msg = "Failed to save changes";
-    const err = (message: string) => {
-      msg = message;
-      throw new Error()
-    }
-    try {
-      if ((user.name.length || 0) < 2)
-        err("Enter a valid username")
-
-      if (!categories || ((categories?.length || 0) < 1))
-        err("You must have at least 1 category")
-
-      await setUserData();
-
-      await db.withTransactionAsync(async () => {
-        await db.runAsync(`DELETE FROM categories`);
-        await db.runAsync(`INSERT INTO categories(name,color,type) VALUES
-      ${categories!.map((_) => `(?,?,?)`).join(',')}; `,
-          categories!.flatMap(cat => [cat.name, cat.color, cat.type]));
-      });
-
+    db.runAsync(`INSERT INTO categories(name,color,type) VALUES (?,?,?)`,
+      [cat.name, cat.color, cat.type]
+    ).then(_ => {
+      toast.show(cat.name + ' successfully added')
+    }).catch((e) => {
+      console.log(e)
+      toast.show("Error: couldn't add category")
+    }).finally(() => {
       revalidate('cats');
       revalidate('transactions');
-      toast.show("Saved successfully")
-      router.back();
-    } catch (e) {
-      console.log(e)
-      Alert.alert(msg);
-    }
+    })
+  }
 
+  const saveName = () => {
+    setUserData().catch((e) => {
+      console.log(e)
+      toast.show("failed to save name")
+    })
   }
 
   return (
@@ -196,12 +187,14 @@ export default function page() {
                   <FontAwesome name="user" color={colors["muted-2"]} size={20} />
                   <TextInput
                     value={user.name}
-                    onChangeText={name => mutateUserData({ name })}
-                    keyboardType="default"
-                    autoCapitalize="words"
-                    autoComplete="name"
-                    className="py-0 my-0 w-full text-head text-xl"
+                    onBlur={saveName}
                     placeholder="User"
+                    autoComplete="name"
+                    autoCapitalize="words"
+                    keyboardType="default"
+                    submitBehavior="blurAndSubmit"
+                    className="py-0 my-0 w-full text-head text-xl"
+                    onChangeText={name => mutateUserData({ name })}
                   />
                 </View>
               </Card>
@@ -217,29 +210,6 @@ export default function page() {
             </View>
           </View>
 
-          <View className="flex-row gap-2 w-full">
-            <TouchableOpacity className='flex-1 mt-5 overflow-hidden bg-muted-2 relative items-center justify-center rounded-[28px] px-6 py-6 border-muted-2 border' onPress={router.back}>
-              {/*
-          <LinearGradient
-            colors={[colors.accent, colors["accent-dark"]]}
-            start={[0.5, 0.2]} end={[1.0, 1.0]}
-            className=" absolute left-0 top-0 flex-1"
-          />
-          */}
-              <Text className="text-xl text-muted font-medium ">Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className=' flex-1 mt-5 overflow-hidden bg-accent relative items-center justify-center rounded-[28px] px-6 py-6' onPress={save}>
-              {/*
-          <LinearGradient
-            colors={[colors.accent, colors["accent-dark"]]}
-            start={[0.5, 0.2]} end={[1.0, 1.0]}
-            className=" absolute left-0 top-0 flex-1"
-          />
-          */}
-              <Text className="text-xl text-white font-medium ">Save</Text>
-            </TouchableOpacity>
-
-          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

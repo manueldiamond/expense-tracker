@@ -5,6 +5,7 @@ import { Alert, Text, TouchableOpacity, View } from "react-native";
 import { format, isToday, isYesterday, isThisWeek, isThisYear, subWeeks, getDay } from "date-fns";
 import { MaterialCommunityIcons } from '@expo/vector-icons/'
 import { useSQLiteContext } from "expo-sqlite";
+import Animated, { LinearTransition } from "react-native-reanimated";
 
 const Controls = ({ onDelete, onEdit, noConfirmDelete }: { noConfirmDelete?: boolean, onDelete?: () => void, onEdit?: () => void }) => {
   const [viewingOptions, setViewingOptions] = useState(false)
@@ -15,10 +16,11 @@ const Controls = ({ onDelete, onEdit, noConfirmDelete }: { noConfirmDelete?: boo
       { text: "Cancel", style: 'cancel' }
     ])
   }
+  
   return (
     viewingOptions ?
-      <View className="flex-row gap-4 border border-muted-2 px-3 h-full flex justify-center items-center rounded-xl">
-
+      <Animated.View
+        className="flex-row gap-4 border border-muted-2 px-3 h-full flex justify-center items-center rounded-xl">
         {onEdit && <TouchableOpacity onPress={onEdit} className="">
           <MaterialCommunityIcons name="file-edit" size={24} color={colors.muted} />
         </TouchableOpacity>}
@@ -30,8 +32,7 @@ const Controls = ({ onDelete, onEdit, noConfirmDelete }: { noConfirmDelete?: boo
         <TouchableOpacity onPress={closeOptions} className="">
           <MaterialCommunityIcons name="close" size={24} color={colors.muted} />
         </TouchableOpacity>
-
-      </View>
+      </Animated.View>
       :
       <TouchableOpacity onPress={() => setViewingOptions(true)} className="border-muted-2 h-full flex justify-center items-center rounded-xl">
         <MaterialCommunityIcons name="dots-vertical" size={24} color={colors.muted} />

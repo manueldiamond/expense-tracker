@@ -6,7 +6,6 @@ import { SQLiteDatabase } from 'expo-sqlite'
 const dbSetupScript = `
 		PRAGMA journal_mode=WAL;
 		PRAGMA foreign_keys=ON;
-
 		
 		CREATE TABLE IF NOT EXISTS categories(
 			name TEXT PRIMARY KEY NOT NULL,

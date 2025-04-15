@@ -3,10 +3,11 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
-    "kai-senbonsakura-kageyoshi": "expo start",
+    "kai": "expo start",
+    "kai-senbonsakura-kageyoshi": "expo start -c",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
+    "adro": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "test": "jest --watchAll",
@@ -17,6 +18,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@react-native-community/datetimepicker": "8.2.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "date-fns": "^4.1.0",

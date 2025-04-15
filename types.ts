@@ -37,3 +37,19 @@ export const periods = ["All", "Today", "Weekly", "Monthly", "Yearly"] as const
 export type periodType = typeof periods[number]
 
 
+export type ReactChildren = Partial<{
+	children: ReactNode;
+	className: string;
+}>
+
+export type TransactionsFiltersType = Partial<{
+	start: Date,
+	end: Date,
+	category: string,
+	type: TransactionCategory['type'],
+	ptype: Transaction['paymentType'],
+	minamount: number,
+	maxamount: number,
+}>
+
+

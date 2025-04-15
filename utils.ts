@@ -42,6 +42,7 @@ export const formaFancyDate = (date: Date) => {
 	else if (isThisWeek(date)) return getDay(date);
 	else if (date >= subWeeks(new Date(), 1)) return "Last week";
 	else if (isThisYear(date)) return format(date, "MMMM d"); // e.g., "March 22"
+
 	return format(date, "MMMM d, yyyy"); // e.g., "March 22, 2022"
 };
 
