@@ -3,27 +3,39 @@ import Controls from "@/components/controls";
 import { useRevalidator } from "@/context/revalidator";
 import { useUserProfile } from "@/context/user";
 import { colors, transactionTypeOptions } from "@/data";
-import { useCategories, useHandleBack, useObjectState, useUserData } from "@/hooks";
+import { useCategories, useHandleBack, useObjectState, useSqliteGet, useUserData } from "@/hooks";
 import { ExternalState, TransactionCategory } from "@/types";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
 import { useSQLiteContext } from "expo-sqlite";
-import { Alert, KeyboardAvoidingView, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Dimensions, KeyboardAvoidingView, Modal, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useToast } from "expo-toast";
-import { TabActionType } from "@react-navigation/native";
 import RadioOptions from "@/components/radio-options";
 import { useMemo, useState } from "react";
-import { toOptions } from "@/utils";
 import { router, useRouter } from "expo-router";
-import BackButton from "@/components/back-button";
-
+import tw from 'twrnc'
+import { LinearGradient } from "expo-linear-gradient";
+import { MainButton } from "@/components/ui/button";
 
 const COLORS = [
-  "#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9", "#C5CAE9",
-  "#BBDEFB", "#B2EBF2", "#B2DFDB", "#C8E6C9", colors["accent-dark"],
-  "#DCEDC8", "#F0F4C3", "#FFF9C4", "#FFECB3", "#FFE0B2",
-  "#FFCCBC", "#D7CCC8", "#F5F5F5", "#CFD8DC", "#E0E0E0",
-  colors.head, colors.lblue, colors.spent,
-  colors.muted,
+  "#D32F2F", // Red
+  "#C2185B", // Pink
+  "#7B1FA2", // Purple
+  "#512DA8", // Deep Purple
+  "#303F9F", // Indigo
+  "#1976D2", // Blue
+  "#0288D1", // Light Blue
+  "#0097A7", // Cyan
+  "#00796B", // Teal
+  "#388E3C", // Green
+  "#689F38", // Light Green
+  "#AFB42B", // Lime
+  "#FBC02D", // Yellow
+  "#FFA000", // Amber
+  "#F57C00", // Orange
+  "#E64A19", // Deep Orange
+  "#5D4037", // Brown
+  "#616161", // Gray
+  "#455A64", // Blue Gray
 ];
 
 export const ColorPicker = ({ state }: { state: ExternalState<string> }) => {
@@ -65,7 +77,7 @@ const CategoriesListItem = ({ name, type, color, deleteCategory }: TransactionCa
   )
 }
 
-const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => void }) => {
+const AddCategory = ({ onAdd, close }: { close: () => void; onAdd: (c: TransactionCategory) => void }) => {
   const [data, setData] = useObjectState<TransactionCategory>({
     name: "", type: "income", color: colors["muted-2"]
   })
@@ -82,64 +94,92 @@ const AddCategoriesListItem = ({ onAdd }: { onAdd: (c: TransactionCategory) => v
   const [selectingColor, setSelectingColor] = useState(false);
 
   return (
-    <Card className="">
-      <Text className="text-muted pb-2">New Category</Text>
-      <View className="gap-2 items-center justify-between flex-1">
-        <View className="flex-row gap-2 items-center self-stretch flex w-full">
-          <TouchableOpacity
-            onPress={() => setSelectingColor(selecting => !selecting)}
-            className="size-9 rounded-xl" style={{ backgroundColor: color }}
-          >
-            {/*CATEGORY_IMAGE*/}
-          </TouchableOpacity>
+    <KeyboardAvoidingView className="container min-h-full" >
+      <View style={tw`bg-white mt-auto mb-5 elevation-6 rounded-3xl shadow-radius-5 p-[1rem] `}>
+        <Text className="text-muted text-xl pb-4 text-center">New Category</Text>
+        <View className="gap-3 items-center justify-between ">
+          <View className=" flex-row gap-3 items-center self-stretch flex w-full">
+            <TouchableOpacity
+              onPress={() => setSelectingColor(selecting => !selecting)}
+              style={tw`w-12 h-12 rounded-xl bg-[${color}]`}
+            >
+              {/*CATEGORY_IMAGE*/}
+            </TouchableOpacity>
 
-          {selectingColor ?
-            <ColorPicker state={[color,
-              (color) => {
-                setData({ color })
-                setSelectingColor(false)
-              }]} />
-            :
-            <TextInput
-              value={name}
-              numberOfLines={1}
-              multiline={false}
-              maxLength={24}
-              autoCapitalize="words"
-              onChangeText={name => setData({ name })}
-              placeholder="Category name"
-              className="border-muted-2 self-stretch max-w-full bg-white/50 rounded-xl px-2 py-1 text-head text-lg flex-1"
-            />}
-        </View>
-        <View className="flex-row justify-between items-center w-full">
+            {selectingColor ?
+              <ColorPicker state={[color,
+                (color) => {
+                  setData({ color })
+                  setSelectingColor(false)
+                }]} />
+              :
+              <TextInput
+                value={name}
+                numberOfLines={1}
+                multiline={false}
+                maxLength={24}
+                autoCapitalize="words"
+                onChangeText={name => setData({ name })}
+                placeholder="Category name"
+                className="border-muted-2 border self-stretch max-w-full rounded-xl px-2 py-1 text-head text-xl flex-1"
+              />}
+          </View>
           <RadioOptions
-            items={transactionTypeOptions} state={[type, (type) => setData({ type })]}
-            itemClassName="!px-2 !py-1"
-            className="gap-1"
-            itemTextClassName="!text-sm"
-            iconSize={10}
+            items={transactionTypeOptions}
+            state={[type, (type) => setData({ type })]}
+            className="gap-3 flex-row w-full"
+            itemClassName="w-full flex-1"
           />
 
-          <TouchableOpacity onPress={addPressed} className="w-max size-max">
-            <View className="flex-row rounded-full px-3 py-1 justify-center items-center border border-muted-2">
-              <MaterialIcons name="add" size={12} color={colors.muted} />
-              <Text className="text-muted text-sm">Add</Text>
-            </View>
-          </TouchableOpacity>
+          <View style={tw`w-full gap-3.5 flex-row `}>
+            <MainButton className='flex-1' onPress={close} ghost>Cancel</MainButton>
+            <MainButton className='flex-1' onPress={addPressed}>Add</MainButton>
+          </View>
         </View>
 
+      </View>
+    </KeyboardAvoidingView>
+  )
+}
+
+const UserData = () => {
+  const db = useSQLiteContext()
+  const { user, setUserData, mutateUserData } = useUserData(db)
+
+  const saveName = () => {
+    setUserData().catch((e) => {
+      console.log(e)
+      toast.show("failed to save name")
+    })
+  }
+  const toast = useToast()
+  return (
+    <Card label="Name" className="py-3.5">
+      <View className="flex-row ml-1 items-center justify-center gap-1">
+        <FontAwesome name="user" color={colors["muted-2"]} size={20} />
+        <TextInput
+          value={user.name}
+          onBlur={saveName}
+          placeholder="User"
+          autoComplete="name"
+          autoCapitalize="words"
+          keyboardType="default"
+          submitBehavior="blurAndSubmit"
+          className="py-0 my-0 w-full text-head text-xl"
+          onChangeText={name => mutateUserData({ name })}
+        />
       </View>
     </Card>
   )
 }
 
-export default function page() {
+const Categories = () => {
   const db = useSQLiteContext()
-  const { user, setUserData, mutateUserData } = useUserData(db)
-  const [categories, mutateCategories] = useCategories(db)
-  const router = useRouter()
+  const [categories,] = useCategories(db)
   const revalidate = useRevalidator()
   const toast = useToast()
+
+  const [addingCategory, setAddingCategory] = useState(false)
 
   const deleteCategoryFromState = (name: string) => {
     db.runAsync(`DELETE FROM categories WHERE name=$name`, { $name: name })
@@ -153,7 +193,7 @@ export default function page() {
       })
   }
 
-  const addCategoryToState = (cat: TransactionCategory) => {
+  const addCategory = (cat: TransactionCategory) => {
     db.runAsync(`INSERT INTO categories(name,color,type) VALUES (?,?,?)`,
       [cat.name, cat.color, cat.type]
     ).then(_ => {
@@ -165,54 +205,61 @@ export default function page() {
       revalidate('cats');
       revalidate('transactions');
     })
+
+    setAddingCategory(false)
   }
 
-  const saveName = () => {
-    setUserData().catch((e) => {
-      console.log(e)
-      toast.show("failed to save name")
-    })
-  }
+  return (
+    <>
+      <Card label="Edit Categories" className=" pb-[140px] py-3.5 gap-4 flex flex-col">
+        {categories?.map(cat =>
+          <CategoriesListItem
+            deleteCategory={() => deleteCategoryFromState(cat.name)}
+            key={cat.name}{...cat} />)}
+        <TouchableOpacity
+          onPress={() => setAddingCategory(true)}
+          style={tw`border border-[${colors["muted-2"]}] justify-between flex flex-row items-center gap-4 py-4 px-4 border-dashed rounded-2xl`}>
+          <MaterialIcons name="add" size={30} color={colors["muted-2"]} />
+          <Text style={tw`text-lg text-[${colors.muted}]`}>New Category</Text>
+          <MaterialIcons name="add" size={30} color={colors["muted-2"]} />
+        </TouchableOpacity>
+      </Card>
+      <Modal
+        visible={addingCategory}
+        transparent
+        animationType="slide"
+      >
+        <Pressable onPress={() => setAddingCategory(false)}>
+          <LinearGradient
+            style={[tw`w-[${Dimensions.get('screen').width}] h-[${Dimensions.get('screen').height}] absolute top-0 left-0`,]}
+            colors={['rgba(0,0,0,0.5)', '#000000']}
+          />
+        </Pressable>
+        <AddCategory close={() => setAddingCategory(false)} onAdd={addCategory} />
+      </Modal>
+
+    </>
+  )
+
+}
+export default function page() {
+  const { user, } = useUserData(useSQLiteContext())
 
   return (
     <KeyboardAvoidingView>
       <ScrollView>
-        <View className="justify-between bg-white h-full container py-8">
-          <View>
-            <Text className='text-4xl font-bold text-head mb-5'>{user.name}</Text>
+        <View className='container' style={tw`justify-between bg-white h-full container py-8 `}>
+          <View style={tw`pb-[20px]`}>
+            <Text style={tw`text-4xl font-bold text-head mb-5`}>{user.name}</Text>
             {/*ADD TRANSACTION HEADER*/}
             <View className="gap-2">
-              <Card label="Name" className="py-3.5">
-                <View className="flex-row ml-1 items-center justify-center gap-1">
-                  <FontAwesome name="user" color={colors["muted-2"]} size={20} />
-                  <TextInput
-                    value={user.name}
-                    onBlur={saveName}
-                    placeholder="User"
-                    autoComplete="name"
-                    autoCapitalize="words"
-                    keyboardType="default"
-                    submitBehavior="blurAndSubmit"
-                    className="py-0 my-0 w-full text-head text-xl"
-                    onChangeText={name => mutateUserData({ name })}
-                  />
-                </View>
-              </Card>
-              <Card label="Edit Categories" className="py-3.5 gap-4 flex flex-col">
-                {categories?.map(cat =>
-                  <CategoriesListItem
-                    deleteCategory={() => deleteCategoryFromState(cat.name)}
-                    key={cat.name}{...cat} />)}
-              </Card>
-
-              <AddCategoriesListItem onAdd={addCategoryToState} />
-              <Text className="text-head"></Text>
+              <UserData />
+              <Categories />
             </View>
           </View>
-
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingView >
   )
 }
 

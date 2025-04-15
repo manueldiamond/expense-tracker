@@ -8,6 +8,7 @@ export interface UserData {
 	email: string;
 	id: number;
 }
+
 export interface TransactionCategory {
 	name: string;
 	color: string;

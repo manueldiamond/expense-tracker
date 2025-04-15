@@ -98,9 +98,9 @@ export const useTransactions = (db: SQLiteDatabase, filters: TransactionsFilters
 		  ORDER BY t.time DESC;
 `,
 		[
-			startDate.toISOString(),
-			endDate.toISOString(),
-			minamount ?? Number.MIN_VALUE,
+			startDate.toISOString().slice(0, 10),
+			endDate.toISOString().slice(0, 10),
+			minamount ?? 0,
 			maxamount ?? Number.MAX_SAFE_INTEGER,
 			...(paymentType ? [paymentType] : []),
 			...(category ? [category] : [])

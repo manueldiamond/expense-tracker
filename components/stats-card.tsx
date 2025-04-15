@@ -1,96 +1,108 @@
-import { bottomTextS, colors } from "@/data"
-import { periodType } from "@/types"
-import { rarr } from "@/utils"
-import Card from "./card"
+import { colors } from "@/data"
 import { Text, View } from "react-native"
-import { PieChart, PieChartPro } from "react-native-gifted-charts"
-import Animated, { LinearTransition, useAnimatedStyle } from "react-native-reanimated"
+import { PieChart } from "react-native-gifted-charts"
+import Animated from "react-native-reanimated"
+import { ReactNode } from "react"
+import Card from "./card"
 
-const StatsCard = ({ showBottomText, period, income = 0, spent = 0 }: {
-  income: number,
-  spent: number,
-  period: periodType,
-  showBottomText?: boolean
+type StatItem = {
+  label: string
+  amount: number
+  color?: string
+  format?: (amount: number) => string
+}
+
+const StatsCard = ({
+  title,
+  income,
+  spent,
+  items,
+  topText,
+  bottomText,
+}: {
+  title: string
+  income?: number
+  spent?: number
+  items?: StatItem[]
+  topText?: ReactNode
+  bottomText?: { text: string; verse: string }
 }) => {
-  const timeOfDay = new Date().getUTCHours()
+  const defaultItems: StatItem[] = income !== undefined && spent !== undefined
+    ? [
+      {
+        label: "Income",
+        amount: income,
+        color: colors.accent,
+        format: (val) => `₵ ${val}`,
+      },
+      {
+        label: "Expenses",
+        amount: spent,
+        color: colors.spent,
+        format: (val) => `₵ ${val}`,
+      },
+    ]
+    : []
 
-  const bottomText = showBottomText && (period !== 'All' && period !== 'Yearly') &&//no bottom text for these durations.
-    !income && !spent
-    ? rarr(bottomTextS.nan)
-    : income > spent
-      ? rarr(bottomTextS.afterGains)
-      : income < spent
-      && rarr(bottomTextS.afterLosses)
+  const displayItems = items?.length ? items : defaultItems
 
+  const hasValues = displayItems.some((item) => item.amount)
 
   return (
-    <View
-      className="container">
-      <Card label={period} className="!pb-1">
-        <Animated.View
-
-        >
-          <View className=" justify-between flex flex-row gap-8">
-            <View className="justify-between flex-1">
-              <View className="gap-0.5 ">
+    <Card label={title} className={`${bottomText ? "!pb-1" : ""}`}>
+      <Animated.View>
+        <View className="justify-between flex flex-row gap-8">
+          <View className="justify-between flex-1">
+            {displayItems.map((item, i) => (
+              <View className="gap-0.5" key={i}>
                 <View className="flex-row items-center gap-2.5">
-                  <View className="w-2 h-[18px] rounded bg-accent" />
-                  <Text className="text-lg text-muted">Income</Text>
+                  <View className="w-2 h-[18px] rounded" style={{ backgroundColor: item.color ?? colors["muted-2"] }} />
+                  <Text className="text-lg text-muted">{item.label}</Text>
                 </View>
-                <Text className=" font-medium text-[24px] text-head">₵ {income}</Text>
+                <Text className="font-medium text-[24px] text-head">
+                  {item.format ? item.format(item.amount) : item.amount}
+                </Text>
               </View>
-
-              <View className="gap-0.5 ">
-                <View className="flex-row items-center gap-2.5">
-                  <View className="w-2 h-[18px] rounded bg-spent" />
-                  <Text className="text-lg text-muted">Expenses</Text>
-                </View>
-                <Text className="font-medium text-[24px] text-head">₵ {spent}</Text>
-              </View>
-
-            </View>
-
-            {(income && spent) ?
-              <PieChart
-                donut
-                data={[
-                  { value: income || 0, color: colors.accent },
-                  { value: spent || 0, color: colors.spent },
-                ]}
-                radius={64}
-                isAnimated
-                animationDuration={.2}
-              />
-              :
-              <View
-                style={{
-                  borderColor: income ? colors.accent : spent ? colors.spent : colors["muted-2"]
-                }}
-                className="border-[35px] rounded-full size-[128px] items-center justify-center"
-              />
-            }
+            ))}
           </View>
 
-          {
-            income || spent &&
+          {hasValues ? (
+            <PieChart
+              donut
+              radius={64}
+              isAnimated
+              animationDuration={0.2}
+              data={displayItems.map((item) => ({
+                value: item.amount,
+                color: item.color ?? colors["muted-2"],
+              }))}
+            />
+          ) : (
+            <View
+              style={{
+                borderColor: colors["muted-2"],
+              }}
+              className="border-[35px] rounded-full size-[128px] items-center justify-center"
+            />
+          )}
+        </View>
 
-            <Text className="mt-2 text-lg text-muted-2 w-full text-left">
-              You've {income > spent ? 'gained' : 'lost'}
-              <Text className={(income > spent ? 'text-accent' : 'text-spent') + " font-medium text-lg"} > ₵{Math.abs(income - spent)} </Text>
-              {period === 'Today' ? 'Today'
-                : period === 'Weekly' ? 'this Week'
-                  : period === 'Yearly' ? 'this Year'
-                    : period === 'Monthly' ? 'this Month'
-                      : 'in Total'
-              }</Text>
+        {topText && (
+          <Text className="mt-2 text-lg text-muted-2 w-full text-left">
+            {topText}
+          </Text>
+        )}
 
-          }
-
-          {bottomText && <Text className="mt-4 text-sm text-muted-2 w-full text-center">{bottomText.text} - <Text className="text-xs font-medium text-muted-2/80">{bottomText.verse}</Text> </Text>}
-        </Animated.View>
-      </Card >
-    </View>
+        {bottomText && (
+          <Text className="mt-4 text-sm text-muted-2 w-full text-center">
+            {bottomText.text} -{" "}
+            <Text className="text-xs font-medium text-muted-2/80">{bottomText.verse}</Text>
+          </Text>
+        )}
+      </Animated.View>
+    </Card>
   )
 }
 
 export default StatsCard
+

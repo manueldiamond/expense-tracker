@@ -58,14 +58,16 @@ export default function AddTrans() {
   const addTransaction = async () => {
     let msg;
     const amount = parseFloat(data.amount);
+    const date = data.date
     try {
       if (!amount || amount < 0)
         msg = "Please enter a valid Amount"
       else if (!data.type)
         msg = "Please specify a Transaction Type"
+      else if (date > new Date())
+        msg = "Invalid Date"
 
-      const date = data.date
-
+      if (msg) throw new Error(msg)
       const trans = {
         $category: data.category,
         $amount: amount * (data.type === 'expense' ? -1 : 1),
@@ -81,10 +83,8 @@ export default function AddTrans() {
       closeModal()
     } catch (e) {
       console.log(e)
-      if (msg) {
-        Alert.alert(msg)
-        return;
-      }
+      Alert.alert(msg || "Please try again later")
+
     } finally {
       revalidate("transactions")
     }

@@ -1,4 +1,5 @@
 import { Button, ScrollView, Text, TouchableOpacity, useAnimatedValue, View } from "react-native"
+import tw from 'twrnc'
 import Icon from '@expo/vector-icons/MaterialIcons'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
 import React, { Dispatch, useState, useEffect, useRef } from "react";
@@ -39,8 +40,8 @@ const AddTransation = () => {
   }));
   return (
     <Animated.View
-      style={style}
-      className=" absolute bottom-16  right-10 justify-center flex-row ">
+      style={[style, tw`absolute right-4 bottom-16 justify-center flex-row absolute`]}
+    >
       {/*ADD BUTTON*/}
       <Link
         onPressIn={() => (pressed.value = true)}
@@ -48,28 +49,25 @@ const AddTransation = () => {
         href={'/add-transaction'}
       >
         <View
-          style={{
-            elevation: 5,
+          style={[{
             backgroundColor: '#fff',
             zIndex: 9999,
             shadowOpacity: 1,
             shadowRadius: 8,
             shadowOffset: { width: 2, height: 4 },
-            width: 64,
-            height: 64,
             borderRadius: 999,
             overflow: 'hidden',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-          }}
+          }, tw`size-[20] elevation-6`]}
         >
           <LinearGradient
             colors={[colors.accent, colors["accent-dark"]]}
             start={[0.5, 0.2]} end={[1.0, 1.0]}
             className="w-full absolute h-full left-0 top-0"
           />
-          <Icon name="add" size={30} color={'#fff'} />
+          <Icon name="add" size={40} color={'#fff'} />
         </View>
       </Link>
     </Animated.View >
@@ -187,6 +185,30 @@ export default function page() {
   const startDate = getDateFromPeriod(period)
   const { transactions, income, spent } = useTransactions(db, { start: startDate }, 10);
 
+  const hasNoData = !income && !spent
+  const isLoss = income < spent
+  const isGain = income > spent
+
+  const topText =
+    (income || spent) ?
+      <>
+        You've {isGain ? 'gained' : 'lost'} <Text className={isGain ? 'text-accent' : 'text-spent'}>₵{Math.abs(income - spent)}</Text> {period === 'Today'
+          ? 'Today' : period === 'Weekly'
+            ? 'this Week' : period === 'Monthly'
+              ? 'this Month' : period === 'Yearly'
+                ? 'this Year' : 'in Total'}
+      </> : undefined
+
+
+  const bottomText = (period !== 'All' && period !== 'Yearly') && hasNoData
+    ? rarr(bottomTextS.nan)
+    : isGain
+      ? rarr(bottomTextS.afterGains)
+      : isLoss
+        ? rarr(bottomTextS.afterLosses)
+        : undefined
+
+
   return (
 
     <View>
@@ -197,7 +219,15 @@ export default function page() {
 
           <Animated.View
             entering={FadeInDown.delay(200).duration(700)}
-          >     <StatsCard spent={spent} income={income} period={period} showBottomText={true} />
+            className={'container'}
+          >
+            <StatsCard
+              title={period}
+              income={income}
+              spent={spent}
+              topText={topText}
+              bottomText={bottomText}
+            />
           </Animated.View>
 
           <RecentTransactions transactions={transactions} />
@@ -205,6 +235,6 @@ export default function page() {
 
       </ScrollView>
       <AddTransation />
-    </View>
+    </View >
   )
 }  
