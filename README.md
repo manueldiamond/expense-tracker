@@ -5,7 +5,8 @@ A simple, clean, and offline-first **Income & Expense Tracker** built with [Expo
 👉 **[Download the APK](https://expo.dev/artifacts/eas/tYJFKqmYh88MUYavKNxci8.apk)**
 
 ---
-
+![image](https://github.com/user-attachments/assets/c47f37e2-ceb7-4b54-bae0-e273dc284985)
+---
 ## 📦 Features
 
 * 🔄 Add **new transactions** (income or expenses)
@@ -17,8 +18,14 @@ A simple, clean, and offline-first **Income & Expense Tracker** built with [Expo
   * 🧮 Filter by **amount range**
   * 📂 Filter by **category**
   * 💰 Filter by **type** (income/expense)
+      
+![image](https://github.com/user-attachments/assets/1128cdc4-6e0e-4866-8822-8230b6609399)
+![image](https://github.com/user-attachments/assets/82a824d9-b8bd-4943-9521-933ed26bb54e)
+![image](https://github.com/user-attachments/assets/9c78cf6f-0bbe-4f20-9a35-41edfdd30a94)
+
 * ⚙️ Simple **settings page** to manage your custom categories
 * 🗃️ Local-first: uses **SQLite** to store everything offline
+![image](https://github.com/user-attachments/assets/1a3cbe00-aae1-4392-9fcf-cef3e6be404f)
 
 ---
 
@@ -106,4 +113,4 @@ Made with ❤️ by someone who just wants people to track their money without a
 
 ## 📃 License
 
-MIT – free to use, modify, or fork!
+MIT – free to use, modify, or fork, all you can think of!!!
