@@ -1,50 +1,109 @@
-# Welcome to your Expo app 👋
+# 💸 Expo Expense Tracker App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A simple, clean, and offline-first **Income & Expense Tracker** built with [Expo](https://expo.dev) for Android 📱
 
-## Get started
+👉 **[Download the APK](https://expo.dev/artifacts/eas/tYJFKqmYh88MUYavKNxci8.apk)**
 
-1. Install dependencies
+---
+
+## 📦 Features
+
+* 🔄 Add **new transactions** (income or expenses)
+* 🎯 Choose from **predefined categories** or create your own
+* 📊 View a **summary chart** and key stats on the home screen
+* 🧾 Full **transaction history** with:
+
+  * 🗓️ **Date filtering**
+  * 🧮 Filter by **amount range**
+  * 📂 Filter by **category**
+  * 💰 Filter by **type** (income/expense)
+* ⚙️ Simple **settings page** to manage your custom categories
+* 🗃️ Local-first: uses **SQLite** to store everything offline
+
+---
+
+## 🛠️ Tech Stack
+
+* **React Native + Expo**
+* **SQLite** for local database storage
+* **React Navigation** for routing
+* **Simple charting library** for visual insights
+
+---
+
+## ⚙️ Installation & Setup
+
+> For developers who want to run this locally:
+
+1. Clone the repo:
+
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   cd your-repo-name
+   ```
+
+2. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. Start the Expo project:
 
    ```bash
-    npx expo start
+   npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. Scan the QR code with Expo Go (on Android) or run on emulator.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+Make sure you have Expo CLI and Expo Go app installed.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 📸 Screenshots
 
-When you're ready, run:
+Coming soon...
 
-```bash
-npm run reset-project
-```
+---
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🧠 Why Offline?
 
-## Learn more
+This app was made for someone who didn't need online sync—just a fast, simple, and private way to track daily cashflow. No login. No cloud. Just open the app and go.
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🧪 Status
 
-## Join the community
+✅ Fully functional on Android via APK
 
-Join our community of developers creating universal apps.
+🚫 No iOS build yet
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+🌐 No online/cloud sync (by design)
+
+---
+
+## 📥 Download
+
+[Click here to download the production APK](https://expo.dev/artifacts/eas/tYJFKqmYh88MUYavKNxci8.apk)
+
+---
+
+## 🚧 Future Ideas
+
+* Cloud backup & sync
+* Budgeting goals
+* Monthly summaries
+* Export to CSV or PDF
+* Dark mode
+
+---
+
+## 👤 Author
+
+Made with ❤️ by someone who just wants people to track their money without all the bloat.
+
+---
+
+## 📃 License
+
+MIT – free to use, modify, or fork!
